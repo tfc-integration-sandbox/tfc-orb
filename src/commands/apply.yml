@@ -1,0 +1,35 @@
+description: Apply the configuration that was previously planned using the run-id. 
+
+parameters:
+  endpoint:
+    description: URL address of the Terraform Enterprise instance
+    type: string
+    default: "https://app.terraform.io/api/v2/runs"
+
+  token:
+    description: API token for your Terraform Cloud instance
+    type: string
+    default: ""
+    
+  workspace:
+    description: Specifies the workspace ID where the run will be executed. or use the CircleCI UI to add your token under the 'TFC_WORKSPACE_ID' env var
+    type: string
+    default: ${TFC_WORKSPACE_ID}
+  
+  message:
+    description: Specifies the message to be associated with this run.
+    type: string
+    default: "Queued from CircleCI via the Terraform Cloud API"
+
+  is-destroy:
+    description: Specifies if this plan is a destroy plan, which will destroy all provisioned resources.
+    type: bool
+    default: false
+
+  configuration-version:
+    description: 	Specifies the `configuration` version to use for this run. If the configuration-version object is omitted, the run will be created using the workspace's latest configuration version.
+    type: string
+    default: ""
+
+steps:
+  
