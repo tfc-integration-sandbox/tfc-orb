@@ -1,0 +1,95 @@
+description: Package configuration and trigger run on workspace in TFC
+
+parameters:
+  token:
+    description: Enter either your Webhook value or use the CircleCI UI to add your token under the 'TFC_TOKEN' env var
+    type: string
+    default: ${TFC_TOKEN}
+
+  organization:
+    description: Enter the name of the TerraformCloud organization or use the CircleCI UI to add your token under the 'TFC_ORGANIZATION' env var
+    type: string
+    default: ${TFC_ORGANIZATION}
+
+  workspace_name:
+    description: Name of the TFC workspace or use the CircleCI UI to add your token under the 'TFC_WORKSPACE_NAME' env var
+    type: string
+    default: ${TFC_WORKSPACE_NAME}
+
+  workspace_id:
+    description: ID of the TFC workspace or use the CircleCI UI to add your token under the 'TFC_WORKSPACE_ID' env var
+    type: string
+    default: ${TFC_WORKSPACE_ID}
+
+  configuration_path:
+    description: path to the Terraform configuration. or use the CircleCI UI to add your token under the 'TFC_CONFIGURATION_PATH' env var
+    type: string
+    default: ${TFC_CONFIGURATION_PATH}
+
+  endpoint:
+    description: The URL of the Terraform Cloud 
+    type: string
+    default: "https://app.terraform.io/"
+
+steps:
+  - run:
+      name: Provide error if non-bash shell
+      command: |
+        if [ ! -x /bin/bash ]; then
+          echo Bash not installed.
+          exit 1
+        fi
+  - run:
+      name: Provide error if cURL is not installed.
+      command: |
+        which curl > curl_exists; echo $? | grep -q '1' && echo curl not installed && rm curl_exists && exit 1
+        rm curl_exists
+
+  - run:
+      name: Provide error if jq is not installed.
+      command: |
+        which jq > jq_exists; echo $? | grep -q '1' && echo jq not installed && rm jq_exists && exit 1
+        rm jq_exists
+
+  - run:
+      name: Package Terraform Configuration in URL
+      command: |
+      
+        tar -zcf "packaged_config" -C "<<paramter.configuration_path>>" .
+
+
+
+  - run: 
+      name: Create a Configuration Version
+      command: |
+        config_version=$(curl -- silent \
+          --header "Authorization: Bearer << parameters.token >>" \
+          --header "Content-Type: application/vnd.api+json" \
+          --request POST \
+          --data @payload.json \
+          "<< parameter.endpoint >>"/api/v2/workspaces/"<< parameters.workspace_id >>"/configuration-versions
+
+        
+        upload_url=$(echo "$config_version" | jq -r '.data.attributes."upload-url"')
+        
+
+  - run:
+      name: Terraform Cloud - Create a new run/plan
+      shell: /bin/bash
+      command: |
+
+        # queue a run with the workspace and config
+        run_id=$(curl --silent \
+          --header "Authorization: Bearer "<< parameter.token >>" \
+          --header "Content-Type: application/vnd.api+json" \
+          --request POST \
+          --data "$data" \
+          "<< parameter.endpoint >>/api/v2/runs" \
+          | jq -r '.data.id'
+          )
+      
+      
+      
+      
+      
+      

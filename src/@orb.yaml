@@ -1,0 +1,13 @@
+version: 2.1
+
+description: >
+  Easily integrate you Terraform Cloud workspace into your CircleCI projects.
+  Trigger a plan and apply run from your orb. Should work for TerraformEnterprise as well. 
+  View this orb's source: https://github.com/tfc-integration-sandbox/tfc-orb
+
+# Create your token here: https://app.terraform.io/app/settings/tokens
+
+## Requirements ##
+## - Bash
+## - cURL
+## - jq
