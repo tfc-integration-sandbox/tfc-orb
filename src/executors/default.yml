@@ -1,0 +1,7 @@
+executors:
+  default:
+    description: "Just the defualt for now"
+    docker:
+      - image: circleci/buildpack-deps@18.04-curl
+
+      
