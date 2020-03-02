@@ -34,6 +34,7 @@ parameters:
 steps:
   - run:
       name: Provide error if non-bash shell
+      shell: /bin/bash
       command: |
         if [ ! -x /bin/bash ]; then
           echo Bash not installed.
@@ -53,11 +54,23 @@ steps:
 
   - run:
       name: Package Terraform Configuration in URL
+      shell: /bin/bash
       command: |
       
         tar -zcf "packaged_config" -C "<<paramter.configuration_path>>" .
 
-
+  - run:
+    command: |
+      cat << EOF >> payload.json
+        {
+          "data": {
+            "type": "configuration-versions",
+            "attributes": {
+              "auto-queue-runs": true
+            }
+          }
+        }
+      EOF      
 
   - run: 
       name: Create a Configuration Version
@@ -71,6 +84,18 @@ steps:
 
         
         upload_url=$(echo "$config_version" | jq -r '.data.attributes."upload-url"')
+
+        export UPLOAD_URL="$upload_url"
+
+  - run:
+      name: Upload a Configuration File
+      shell: /bin/bash
+      command: |
+        curl --silent \
+          --request PUT \
+          -F "data=@${packaged_config}" \
+          "$upload_url"
+
         
 
   - run:
@@ -88,7 +113,7 @@ steps:
           | jq -r '.data.id'
           )
       
-      
+  
       
       
       
